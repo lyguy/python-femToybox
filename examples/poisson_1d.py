@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 def solveDirch(f, grid):
   """
   Returns an FEM solution to the problem
-    -u'' u = f
-  with Dirichlet BC's
+    -u'' + u = f
+  with Homogeneous Dirichlet BC's
   """
   A = femtoy.stiffness(grid)
   C = femtoy.zeroOrder(grid)
