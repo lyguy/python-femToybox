@@ -1,20 +1,20 @@
 import numpy as _np
 
-def ithElement(grid, index):
+def dirchElement(grid, index):
   """Return a function phi which is the ith basis elements of
   for the Dirichlet problem.
-
   """
 
   nn = len(grid)-1
   ell = _np.diff(grid)
-  
-  rightDomain = (x <= grid[index + 1]) * (grid[index] <= x)
-  rightSlope = -1. / (grid[index + 1] - grid[index])
-  rightIntercept = grid[index +1]
-  leftDomain = (grid[index - 1] <= x) * (x <= grid[index])
-  leftSlope = 1. / (grid[index] - grid[index - 1])
-  leftIntercept = grid[index - 1]
+  if index != nn:
+    rightDomain = (x <= grid[index + 1]) * (grid[index] <= x)
+    rightSlope = -1. / (grid[index + 1] - grid[index])
+    rightIntercept = grid[index +1]
+  if index != 0:
+    leftDomain = (grid[index - 1] <= x) * (x <= grid[index])
+    leftSlope = 1. / (grid[index] - grid[index - 1])
+    leftIntercept = grid[index - 1]
 
   if index == 0:
     def phi(x):
