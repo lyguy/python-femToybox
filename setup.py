@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='femToybox',
-    version='0.0.1',
+    version='0.1.0',
     author='Lyman Gillispie',
     author_email="lyman.gillispie@gmail.com",
     packages=['femtoybox'],
