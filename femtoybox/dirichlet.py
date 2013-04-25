@@ -2,6 +2,50 @@ import numpy as _np
 import scipy.sparse as _sparse
 
 
+def stiffnessEntry(grid, ii, jj):
+  """Find \int \psi_i' \psi_j' dx where psi_i and \psi_j 
+  are the respective entries of our pw-linear basis
+  on the grid 'grid'
+
+  TODO: Make this more friendly to negative indexing,
+  right now it throws an error
+  """
+
+  ii, jj = max(ii, jj), min(ii, jj)
+  L = len(grid)
+  if ii >= L:
+    raise IndexError('index %i ' %(ii)
+      + 'is out of bounds for grid with size %i' % (L))
+  
+  if jj < 0:
+    raise IndexError('index %i ' %(jj)
+      + 'is out of bounds for grid with size %i' %(L))
+
+  # Integrals on either side of grid point ii
+  rightInt = lambda ii: 1.0/(grid[ii + 1] - grid[ii])
+  leftInt = lambda ii: 1.0/(grid[ii] - grid[ii-1])
+
+  def diag(ii):
+    if ii == 0:
+      return rightInt(ii)
+    elif ii == len(grid) - 1:
+      return leftInt(ii)
+    else:
+      return leftInt(ii) + rightInt(ii)
+  
+  def upper(ii):
+    return leftInt(ii)
+
+  def lower(ii):
+    return rightInt(ii)
+
+  options = { 0: diag, 1: lower, -1: upper}
+
+  try:
+    return options[ii - jj](ii)
+  except KeyError:
+    return 0.0
+
 def stiffness(grid):
   """Form the stiffness matrix A_{ij} = \int \phi_i' phi_j' 
   where phi_i is the i'th basis function for the Dirichlet problem 
