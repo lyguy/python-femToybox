@@ -33,7 +33,7 @@ def stiffnessEntry(grid, ii, jj):
     else:
       return - leftInt(ii) - rightInt(ii)
   
-  options = { 0: diag, 1: rightInt, -1: leftInt}
+  options = { 0: diag, -1: rightInt, 1: leftInt}
   
   try:
     return options[ii - jj](ii)
@@ -74,7 +74,8 @@ def zeroOrder(grid):
   """Form the mass matrix  C_{ij} = \int \phi_i+1 \phi_j+1 where 
   phi_i is the i'th basis function for the Dirichlet problem as described in the notes.
 
-  TODO: initialize C via coo, conversion to CRS is faster
+  TODO: * initialize C via coo, conversion to CRS is faster
+        * do this integration via builtin quadrature methods
   """
   n = len(grid) - 2
   ell = _np.diff(grid)
