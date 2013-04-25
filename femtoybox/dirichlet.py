@@ -7,8 +7,8 @@ def stiffnessEntry(grid, ii, jj):
   are the respective entries of our pw-linear basis
   on the grid 'grid'
 
-  TODO: Make this more friendly to negative indexing,
-  right now it throws an error
+  TODO: * Make this more friendly to negative indexing,
+          right now it throws an error
   """
 
   ii, jj = max(ii, jj), min(ii, jj)
@@ -69,7 +69,7 @@ def zeroOrder(grid):
   phi_i is the i'th basis function for the Dirichlet problem as described in the notes.
 
   TODO: * initialize C via coo, conversion to CRS is faster
-        * do this integration via builtin quadrature methods
+        * similiar to the stiffness matrix, do this via a helper fcn 
   """
   n = len(grid) - 2
   ell = _np.diff(grid)
@@ -93,6 +93,7 @@ def intF(f, grid):
   Estimate \int f \phi_i using Gaussian quadrature
 
   TODO: Clean this puppy up, it's ugly
+        * do this integration via builtin quadrature methods
   """
   # number of sub interval in the grid
   nElts = len(grid) - 1
