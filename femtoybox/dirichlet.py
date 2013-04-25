@@ -56,14 +56,14 @@ def stiffness(grid):
   n = len(grid) - 2
   A = _sparse.dok_matrix((n, n))
 
-  A[0, 0] = 1. / ell[0] + 1. / ell[1]
-  A[0, 1] = -1. / ell[1]
-  for ii in range(1, n-1):
-    A[ii, ii-1] = -1./ell[ii]
-    A[ii, ii] = 1./ell[ii] + 1./ell[ii+1]
-    A[ii, ii+1] =  -1./ell[ii+1]
-  A[n-1, n-2] = -1./ell[n-1]
-  A[n-1, n-1] =  1/ell[n-1]+1/ell[n]
+  A[0, 0] = stiffnessEntry(grid, 1, 1)
+  A[0, 1] = stiffnessEntry(grid, 1, 2)
+  for ii in range(1, n - 1):
+    A[ii, ii-1] = stiffnessEntry(grid, ii + 1, ii)
+    A[ii, ii] = stiffnessEntry(grid, ii + 1, ii + 1)
+    A[ii, ii+1] = stiffnessEntry(grid, ii + 1, ii + 2)
+  A[n-1, n-2] = stiffnessEntry(grid, n, n-1)
+  A[n-1, n-1] =  stiffnessEntry(grid, n, n)
   
   # Scipy's solvers require a CRS or CSC formated sparse matrix.
   # Since the solvers are more efficient for CRS, we'll use it.
