@@ -22,16 +22,16 @@ def stiffnessEntry(grid, ii, jj):
       + 'is out of bounds for grid with size %i' %(L))
 
   # Integrals on either side of grid point ii
-  rightInt = lambda ii: 1.0/(grid[ii + 1] - grid[ii])
-  leftInt = lambda ii: 1.0/(grid[ii] - grid[ii-1])
+  rightInt = lambda ii: - 1.0/(grid[ii + 1] - grid[ii])
+  leftInt = lambda ii: - 1.0/(grid[ii] - grid[ii-1])
 
   def diag(ii):
     if ii == 0:
-      return rightInt(ii)
+      return - rightInt(ii)
     elif ii == len(grid) - 1:
-      return leftInt(ii)
+      return - leftInt(ii)
     else:
-      return leftInt(ii) + rightInt(ii)
+      return - leftInt(ii) - rightInt(ii)
   
   options = { 0: diag, 1: rightInt, -1: leftInt}
   
