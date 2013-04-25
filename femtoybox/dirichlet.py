@@ -44,27 +44,21 @@ def stiffness(grid):
   """Form the stiffness matrix A_{ij} = \int \phi_i' phi_j' 
   where phi_i is the i'th basis function for the Dirichlet problem 
   as described in the notes. 
-  
-  TODO: initialize A via coo, since the conversion
-  to CRS is faster. It  will probably be easier to use some list
-  comprehension to do this.
-
   """
-
-  ell = _np.diff(grid) 
- # grid[1:len(grid)] - grid[0:len(grid) - 1]
   n = len(grid) - 2
   A = _sparse.dok_matrix((n, n))
-
-  A[0, 0] = stiffnessEntry(grid, 1, 1)
-  A[0, 1] = stiffnessEntry(grid, 1, 2)
-  for ii in range(1, n - 1):
-    A[ii, ii-1] = stiffnessEntry(grid, ii + 1, ii)
-    A[ii, ii] = stiffnessEntry(grid, ii + 1, ii + 1)
-    A[ii, ii+1] = stiffnessEntry(grid, ii + 1, ii + 2)
-  A[n-1, n-2] = stiffnessEntry(grid, n, n-1)
-  A[n-1, n-1] =  stiffnessEntry(grid, n, n)
+  diags = _np.zeros((3, n))
+  offsets = [0, -1, 1]
   
+  # Calculate the diagonal entries of the stiffness matrix
+  for ii in range(n-1):
+    diags[0, ii] = stiffnessEntry(grid, ii + 1, ii + 1)
+    diags[1, ii] = stiffnessEntry(grid, ii + 1, ii + 2)
+    diags[2, ii + 1] = D[1, ii]
+  diags[0, n - 1] = stiffnessEntry(grid, n, n)
+
+  A = _sparse.dia_matrix((diags, offsets), shape=(n, n))
+
   # Scipy's solvers require a CRS or CSC formated sparse matrix.
   # Since the solvers are more efficient for CRS, we'll use it.
   A = A.tocsr()
