@@ -33,14 +33,8 @@ def stiffnessEntry(grid, ii, jj):
     else:
       return leftInt(ii) + rightInt(ii)
   
-  def upper(ii):
-    return leftInt(ii)
-
-  def lower(ii):
-    return rightInt(ii)
-
-  options = { 0: diag, 1: lower, -1: upper}
-
+  options = { 0: diag, 1: rightInt, -1: leftInt}
+  
   try:
     return options[ii - jj](ii)
   except KeyError:
