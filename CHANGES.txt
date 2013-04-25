@@ -1,2 +1,3 @@
-v0.1.0, 04-21-2012 -- Introduced linear basis function generator.
+v0.1.1, 04-24-2013 -- Fixed bug in basis function generator
+v0.1.0, 04-21-2013 -- Introduced linear basis function generator.
 v0.0.1, 04-02-2013 -- Simple 1D Dirichlet solver is functional.

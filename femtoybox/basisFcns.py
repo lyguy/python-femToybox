@@ -8,26 +8,26 @@ def dirchElement(grid, index):
   nn = len(grid)-1
   ell = _np.diff(grid)
   if index != nn:
-    rightDomain = (x <= grid[index + 1]) * (grid[index] <= x)
+    rightDomain = lambda x: (x <= grid[index + 1]) * (grid[index] <= x)
     rightSlope = -1. / (grid[index + 1] - grid[index])
-    rightIntercept = grid[index +1]
+    rightIntercept =  grid[index +1]
   if index != 0:
-    leftDomain = (grid[index - 1] <= x) * (x <= grid[index])
+    leftDomain = lambda x: (grid[index - 1] <= x) * (x <= grid[index])
     leftSlope = 1. / (grid[index] - grid[index - 1])
-    leftIntercept = grid[index - 1]
+    leftIntercept =  grid[index - 1]
 
   if index == 0:
     def phi(x):
-      y = rightDomain * rightSlope * (x - rightIntercept)
+      y = rightDomain(x) * rightSlope * (x - rightIntercept)
       return y
   elif index == nn:
     def phi(x):
-      y = leftDomain * leftSlope * (x - leftIntercept)
+      y = leftDomain(x) * leftSlope * (x - leftIntercept)
       return y
   else:
     def phi(x):
-      y = (rightDomain * rightSlope * (x - rightIntercept)
-          +  leftDomain * leftSlope * (x - leftIntercept))
+      y = (rightDomain(x) * rightSlope * (x - rightIntercept)
+          +  leftDomain(x) * leftSlope * (x - leftIntercept))
       return y
   
   return phi
