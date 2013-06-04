@@ -28,7 +28,7 @@ def stiffnessEntry(grid, ii, jj):
   def diag(ii):
     if ii == 0:
       return - rightInt(ii)
-    elif ii == len(grid) - 1:
+    elif ii == L - 1:
       return - leftInt(ii)
     else:
       return - leftInt(ii) - rightInt(ii)
@@ -40,13 +40,13 @@ def stiffnessEntry(grid, ii, jj):
   except KeyError:
     return 0.0
 
+
 def stiffness(grid):
   """Form the stiffness matrix A_{ij} = \int \phi_i' phi_j' 
   where phi_i is the i'th basis function for the Dirichlet problem 
   as described in the notes. 
   """
   n = len(grid) - 2
-  A = _sparse.dok_matrix((n, n))
   diags = _np.zeros((3, n))
   offsets = [0, -1, 1]
   
