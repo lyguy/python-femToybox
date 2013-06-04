@@ -54,7 +54,7 @@ def stiffness(grid):
   for ii in range(n-1):
     diags[0, ii] = stiffnessEntry(grid, ii + 1, ii + 1)
     diags[1, ii] = stiffnessEntry(grid, ii + 1, ii + 2)
-    diags[2, ii + 1] = D[1, ii]
+    diags[2, ii + 1] = diags[1, ii]
   diags[0, n - 1] = stiffnessEntry(grid, n, n)
 
   A = _sparse.dia_matrix((diags, offsets), shape=(n, n))
