@@ -64,6 +64,41 @@ def stiffness(grid):
   A = A.tocsr()
   return A
 
+def massEntry(grid, ii, jj):
+  """Calculate \int psi_i psi_j dx, where psi_i is the ith
+  pw-linear basis function
+  """
+
+  ii, jj = max(ii,jj), min(ii,jj)
+  L = len(grid)
+  if ii >= L:
+    raise IndexError('index %i ' %(ii)
+      + 'is out of bounds for grid with size %i' % (L))
+ 
+  if jj < 0:
+    raise IndexError('index %i ' %(jj)
+      + 'is out of bounds for grid with size %i' %(L))
+
+  # Integrals on either side of x_ii
+  rightInt = lambda ii: (grid[ii + 1] - grid[ii]) / 6.0
+  leftInt = lambda ii: (grid[ii] - grid[ii -1])/6.0
+
+  def diag(ii):
+    if ii == 0:
+      return rightInt(ii)
+    elif ii == L - 1:
+      return leftInt(ii)
+    else:
+      return 2*(leftInt(ii) + rightInt(ii))
+
+  options = { 0: diag, -1: rightInt, 1: leftInt}
+
+  try:
+    return options[ii-jj](ii)
+  except KeyError:
+    return 0.0
+
+
 def zeroOrder(grid):
   """Form the mass matrix  C_{ij} = \int \phi_i+1 \phi_j+1 where 
   phi_i is the i'th basis function for the Dirichlet problem as described in the notes.
@@ -72,17 +107,16 @@ def zeroOrder(grid):
         * similiar to the stiffness matrix, do this via a helper fcn 
   """
   n = len(grid) - 2
-  ell = _np.diff(grid)
+  diags = _np.zeros((3,n))
+  offsets = [0, -1, 1]
 
-  C = _sparse.dok_matrix((n,n))
-  C[0, 0] = (ell[0] + ell[1]) / 3.
-  C[0, 1] = ell[1] / 6.
-  for ii in range(1, n-1):
-    C[ii, ii - 1] = ell[ii] / 6.
-    C[ii, ii] = (ell[ii] + ell[ii+1]) / 3.
-    C[ii, ii + 1] = ell[ii+1] / 6.
-  C[n-1,n-2] = ell[n-1]/6.
-  C[n-1, n-1] = (ell[n-1] + ell[n])/3.
+  for ii in range(n-1):
+    diags[0, ii] = massEntry(grid, ii+1, ii+1)
+    diags[1, ii] = massEntry(grid, ii + 1, ii + 2)
+    diags[2, ii+1] = diags[1, ii]
+  diags[0, n-1] = massEntry(grid, n, n)
+
+  C = _sparse.dia_matrix((diags, offsets), shape=(n,n))
 
   # SciPy's solvers need a CRS or CRC sparse matrix
   C = C.tocsr()
