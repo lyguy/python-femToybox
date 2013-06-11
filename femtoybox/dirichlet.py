@@ -122,6 +122,43 @@ def zeroOrder(grid):
   C = C.tocsr()
   return C
 
+
+def advectEntry(grid, ii, jj):
+  """
+  Calculate \int \phi_i'\psi_j dx
+  """
+  L = len(grid)
+  
+  if ii >= L or jj >= L:
+    raise IndexError('index is out of bounds for grid with size %i' %(L))
+  if jj < 0 or ii < 0:
+    raise IndexError('index is out of bounds for grid with size %i' %(L))
+
+  options = { 0: 0.0, -1: -0.5, 1: 0.5}
+  
+  try:
+    return options[jj-ii]*(grid[jj] - grid[ii])
+  except KeyError:
+    return 0.0
+
+def advection(grid):
+  """
+  form the matrix for advection B{ij} = \int \phi_i' \phi_j
+  """
+  n = len(grid) - 2
+  diags = _np.zeros((2, n))
+  offsets = [-1, 1]
+
+  for ii in range(n-1):
+    diags[0, ii] = advectEntry(grid, ii+1, ii+1)
+    diags[1, ii +1] = advectEntry(grid, ii+1, ii+2)
+
+  B = _sparse.dia_matrix((diags, offsets), shape=(n, n))
+
+  return B.tocsr()
+  
+
+
 def intF(f, grid):
   """
   Estimate \int f \phi_i using Gaussian quadrature
