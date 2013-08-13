@@ -38,7 +38,7 @@ def solveNonHomo(f, grid, bcs):
   return solution
 
 def main():
-  J = 3
+  J = 250
   grid = np.linspace(0,1,J+1)
   fineGrid = np.linspace(0,1,200)
   f = lambda x: 1 - 2*(x**2)
@@ -47,7 +47,7 @@ def main():
   g = bcs[0]
   h =  (bcs[1] - bcs[0] - 1/3.0)
 
-  u = lambda x: g + h*x + 0.5*(x**2) - (x**4)/6
+  u = lambda x: g + h*x + 0.5*(x**2) - (x**4)/6.0
   uExactFine = u(fineGrid)
   uExact = u(grid)
 
@@ -61,7 +61,7 @@ def main():
   ax.legend(loc=2)
   ax.text(0.0, 0.0, 'error = %g' % max(abs(uFEM - uExact)))
 
-  fig.show()
+  plt.show()
 
 if __name__ == '__main__':
   main()

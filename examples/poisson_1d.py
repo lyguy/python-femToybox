@@ -50,7 +50,8 @@ def main():
     uExact = u(grid[kk])
     ax.text(0.4,-0.15, 'error = %f' % max(abs(U - uExact)))
 
-  fig.show()
+  plt.show()
+
 
 if __name__ == '__main__':
   main()
