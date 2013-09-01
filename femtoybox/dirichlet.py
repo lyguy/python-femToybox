@@ -2,6 +2,30 @@ import numpy as _np
 import scipy.sparse as _sparse
 
 
+def tridiagFromFcn(grid, entryFcn):
+  """Form the tri-diagonal matrix A_{ij} = entryFcn(i,j) 
+  """
+  n = len(grid) - 2
+  diags = _np.zeros((3, n))
+  offsets = [1, 0, -1]
+  
+  # Calculate the diagonal entries of the stiffness matrix
+  diags[1, 0] = entryFcn(grid, 1, 1)
+  diags[0, 1] = entryFcn(grid, 1, 2)
+  for ii in range(1,n-1):
+    diags[2, ii - 1] = entryFcn(grid, ii + 1, ii )
+    diags[1, ii ] = entryFcn(grid, ii + 1, ii + 1)
+    diags[0, ii+1] = entryFcn(grid, ii + 1, ii + 2)
+  diags[2, n -2] = entryFcn(grid, n, n-1)
+  diags[1, n - 1] = entryFcn(grid, n, n)
+
+  A = _sparse.dia_matrix((diags, offsets), shape=(n, n))
+  # Scipy's solvers require a CRS or CSC formated sparse matrix.
+  # Since the solvers are more efficient for CRS, we'll use it.
+  A = A.tocsr()
+  return A
+
+
 def stiffnessEntry(grid, ii, jj):
   """Find \int \psi_i' \psi_j' dx where psi_i and \psi_j 
   are the respective entries of our pw-linear basis
@@ -40,29 +64,9 @@ def stiffnessEntry(grid, ii, jj):
   except KeyError:
     return 0.0
 
-
 def stiffness(grid):
-  """Form the stiffness matrix A_{ij} = \int \phi_i' phi_j' 
-  where phi_i is the i'th basis function for the Dirichlet problem 
-  as described in the notes. 
-  """
-  n = len(grid) - 2
-  diags = _np.zeros((3, n))
-  offsets = [0, -1, 1]
-  
-  # Calculate the diagonal entries of the stiffness matrix
-  for ii in range(n-1):
-    diags[0, ii] = stiffnessEntry(grid, ii + 1, ii + 1)
-    diags[1, ii] = stiffnessEntry(grid, ii + 1, ii + 2)
-    diags[2, ii + 1] = diags[1, ii]
-  diags[0, n - 1] = stiffnessEntry(grid, n, n)
+  return tridiagFromFcn(grid, stiffnessEntry)
 
-  A = _sparse.dia_matrix((diags, offsets), shape=(n, n))
-
-  # Scipy's solvers require a CRS or CSC formated sparse matrix.
-  # Since the solvers are more efficient for CRS, we'll use it.
-  A = A.tocsr()
-  return A
 
 def massEntry(grid, ii, jj):
   """Calculate \int psi_i psi_j dx, where psi_i is the ith
@@ -100,27 +104,7 @@ def massEntry(grid, ii, jj):
 
 
 def zeroOrder(grid):
-  """Form the mass matrix  C_{ij} = \int \phi_i+1 \phi_j+1 where 
-  phi_i is the i'th basis function for the Dirichlet problem as described in the notes.
-
-  TODO: * initialize C via coo, conversion to CRS is faster
-        * similiar to the stiffness matrix, do this via a helper fcn 
-  """
-  n = len(grid) - 2
-  diags = _np.zeros((3,n))
-  offsets = [0, -1, 1]
-
-  for ii in range(n-1):
-    diags[0, ii] = massEntry(grid, ii+1, ii+1)
-    diags[1, ii] = massEntry(grid, ii + 1, ii + 2)
-    diags[2, ii+1] = diags[1, ii]
-  diags[0, n-1] = massEntry(grid, n, n)
-
-  C = _sparse.dia_matrix((diags, offsets), shape=(n,n))
-
-  # SciPy's solvers need a CRS or CRC sparse matrix
-  C = C.tocsr()
-  return C
+  return tridiagFromFcn(grid, massEntry)
 
 
 def advectEntry(grid, ii, jj):
@@ -134,29 +118,30 @@ def advectEntry(grid, ii, jj):
   if jj < 0 or ii < 0:
     raise IndexError('index is out of bounds for grid with size %i' %(L))
 
-  options = { 0: 0.0, -1: -0.5, 1: 0.5}
+  #integrals o either side of grid point ii
+  #rightInt(ii) = int (phi_ii)_x phi_{ii-1}
+  rightInt = lambda ii: - 0.5*(grid[ii] + grid[ii - 1])/(grid[ii] - grid[ii - 1])
+  #leftInt(ii) = int (phi_ii)_x phi_{ii+1}
+  leftInt = lambda ii: - 0.5*(grid[ii + 1] + grid[ii])/(grid[ii + 1] - grid[ii])
+
+  def diag(ii):
+    if ii == 0:
+      return - rightInt(ii)
+    elif ii == L - 1:
+      return -leftInt(ii)
+    else:
+      return -leftInt(ii) - rightInt(ii)
+
+  options = { 0: diag, -1: rightInt, 1: leftInt}
   
   try:
-    return options[jj-ii]*(grid[jj] - grid[ii])
+    return options[jj-ii](ii)
   except KeyError:
     return 0.0
 
-def advection(grid):
-  """
-  form the matrix for advection B{ij} = \int \phi_i' \phi_j
-  """
-  n = len(grid) - 2
-  diags = _np.zeros((2, n))
-  offsets = [-1, 1]
-
-  for ii in range(n-1):
-    diags[0, ii] = advectEntry(grid, ii+1, ii+1)
-    diags[1, ii +1] = advectEntry(grid, ii+1, ii+2)
-
-  B = _sparse.dia_matrix((diags, offsets), shape=(n, n))
-
-  return B.tocsr()
   
+def advection(grid):
+  return tridiagFromFcn(grid, advectEntry)
 
 
 def intF(f, grid):
