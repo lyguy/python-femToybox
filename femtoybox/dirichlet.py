@@ -123,9 +123,9 @@ def advectEntry(grid, ii, jj):
 
   #integrals o either side of grid point ii
   #rightInt(ii) = int (phi_ii)_x phi_{ii-1}
-  rightInt = lambda ii: - 0.5*(grid[ii] + grid[ii - 1])/(grid[ii] - grid[ii - 1])
+  rightInt = lambda ii: 0.5 
   #leftInt(ii) = int (phi_ii)_x phi_{ii+1}
-  leftInt = lambda ii: - 0.5*(grid[ii + 1] + grid[ii])/(grid[ii + 1] - grid[ii])
+  leftInt = lambda ii: -0.5
 
   def diag(ii):
     if ii == 0:
@@ -133,7 +133,7 @@ def advectEntry(grid, ii, jj):
     elif ii == L - 1:
       return -rightInt(ii)
     else:
-      return -leftInt(ii) - rightInt(ii)
+      return 0.0
 
   options = { 0: diag, -1: rightInt, 1: leftInt}
   
