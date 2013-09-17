@@ -46,14 +46,16 @@ def stiffnessEntry(grid, ii, jj):
       + 'is out of bounds for grid with size %i' %(L))
 
   # Integrals on either side of grid point ii
-  rightInt = lambda ii: - 1.0/(grid[ii + 1] - grid[ii])
-  leftInt = lambda ii: - 1.0/(grid[ii] - grid[ii-1])
+  # leftInt(ii) = \int \phi_ii' \phi_{ii+1}'
+  leftInt = lambda ii: - 1.0/(grid[ii + 1] - grid[ii])
+  # rightInt(ii) = \int \phi_ii' \phi_{ii-1}'
+  rightInt = lambda ii: - 1.0/(grid[ii] - grid[ii-1])
 
   def diag(ii):
     if ii == 0:
-      return - rightInt(ii)
-    elif ii == L - 1:
       return - leftInt(ii)
+    elif ii == L - 1:
+      return - rightInt(ii)
     else:
       return - leftInt(ii) - rightInt(ii)
   
@@ -83,15 +85,16 @@ def massEntry(grid, ii, jj):
     raise IndexError('index %i ' %(jj)
       + 'is out of bounds for grid with size %i' %(L))
 
-  # Integrals on either side of x_ii
-  rightInt = lambda ii: (grid[ii + 1] - grid[ii]) / 6.0
-  leftInt = lambda ii: (grid[ii] - grid[ii -1])/6.0
+  # leftInt(ii) = int phi_ii \phi_{ii+1}
+  leftInt = lambda ii: (grid[ii + 1] - grid[ii]) / 6.0
+  #rightInt(ii) = int phi_ii \phi_{ii-1}
+  rightInt = lambda ii: (grid[ii] - grid[ii -1])/6.0
 
   def diag(ii):
     if ii == 0:
-      return rightInt(ii)
-    elif ii == L - 1:
       return leftInt(ii)
+    elif ii == L - 1:
+      return rightInt(ii)
     else:
       return 2*(leftInt(ii) + rightInt(ii))
 
@@ -126,9 +129,9 @@ def advectEntry(grid, ii, jj):
 
   def diag(ii):
     if ii == 0:
-      return - rightInt(ii)
+      return - leftInt(ii)
     elif ii == L - 1:
-      return -leftInt(ii)
+      return -rightInt(ii)
     else:
       return -leftInt(ii) - rightInt(ii)
 
