@@ -11,7 +11,7 @@ from scipy.sparse.linalg import spsolve
 #      not a *solution* but merely a boundary-value-satisfying function
 #    * using the b-v-satisfying function requires changing the problem,
 #      so I have added "Sprime" into solveNonHomo() to compensate S when
-#      using bv_satisfied()
+#      using bvSatisfied()
 # formal changes:
 #    * remove V and S from parameter class
 #    * pass class P containing parameters, not individual parameters
@@ -19,12 +19,12 @@ from scipy.sparse.linalg import spsolve
 #    * print errors instead of in figures
 # WARNINGS:
 #    * this version assumes V is constant at several stages
-#    * the exact solution exact_solution_noadvect() assumes S is constant;
+#    * the exact solution exactSolutionNoadvect() assumes S is constant;
 #      if it is not constant we must either fix or abandon
-#      exact_solution_noadvect()
+#      exactSolutionNoadvect()
 
 
-class params():
+class Params():
   def __init__(self):
     """typical values taken from Aschwanden et. al. 2012"""
 
@@ -40,7 +40,7 @@ class params():
     self.T_0 = -10.0   # C
 
 
-def exact_solution_noadvect(P,S_0):
+def exactSolutionNoadvect(P,S_0):
   """Returns a function which is the exact solution of the nonhomogeneous
   boundary value problem with zero advection and constant source:
     0 = (k u_z)_z + S_0
@@ -48,11 +48,19 @@ def exact_solution_noadvect(P,S_0):
     u(0) = 0
   """
   def u(z):
-    return (S_0 / 2.0*P.k) * (P.ell - z) * z + (P.T_0 / P.ell) * z
+    return (S_0 / (2.0*P.k)) * (P.ell - z) * z + (P.T_0 / P.ell) * z
   return u
 
 
-def exact_solution_nosource(P,V_0):
+def critStrainNoAdvect(P):
+  """Assuming V0 = 0, returns the critical S0, so that u(z) <= 0
+  for any 0 <= z <= ell. See notes for derivation.
+  """
+  critS0 = -2.0 * P.T_0 * P.k / (P.ell)**2
+  return critS0
+
+
+def exactSolutionNosource(P,V_0):
   """Returns a function which is the exact solution of the nonhomogeneous
   boundary value problem with zero source and constant advection:
     rho c (V_0 u)_z = (k u_z)_z
@@ -69,7 +77,7 @@ def exact_solution_nosource(P,V_0):
   return u
 
 
-def bv_satisfied(P):
+def bvSatisfied(P):
   """Returns a linear function which satisfies the boundary values
     u(ell) = T_0
     u(0) = 0
@@ -105,13 +113,13 @@ def solveNonHomo(P, S, V, grid):
   """
   Sprime = lambda z: S(z) - P.rho * P.c * V(0.0) * P.T_0 / P.ell
   y = solveHomo(P, Sprime, V, grid)
-  upart = bv_satisfied(P)
+  upart = bvSatisfied(P)
   y = y + upart(grid)
   return y
 
 
 def main():
-  P = params()
+  P = Params()
 
   fig = plt.figure()
   grid = np.linspace(0,P.ell,30)
@@ -123,9 +131,7 @@ def main():
       S0 = 0.0
       V0 = 0.0
     elif j == 1:
-      S0 = 0.00002       # strain heating in FIXME units
-      # NOTE:  you should be able to find the critical value S0 so that
-      #        u<=0 is violated
+      S0 = critStrainNoAdvect(P)       # strain heating in FIXME units
       V0 = 0.0
     elif j == 2:
       S0 = 0.0
@@ -137,9 +143,9 @@ def main():
       print 'ERROR: unexpected case'
 
     if j <= 1:
-      uexact = exact_solution_noadvect(P,S0)
+      uexact = exactSolutionNoadvect(P,S0)
     elif j == 2:
-      uexact = exact_solution_nosource(P,V0)
+      uexact = exactSolutionNosource(P,V0)
 
     # for now: S and V constant in all cases
     S = lambda x: S0
@@ -157,6 +163,7 @@ def main():
           % (S0, V0, max(abs(U - uexact(grid))))
 
   plt.show()
+  fig.savefig('ed_coldIce_results_new.png')
 
 
 if __name__=="__main__":
