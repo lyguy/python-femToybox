@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='femToybox',
-    version='0.1.3',
+    version='0.1.4',
     author='Lyman Gillispie',
     author_email="lyman.gillispie@gmail.com",
     url="https://github.com/fmuzf/python-femToybox",

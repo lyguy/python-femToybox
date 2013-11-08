@@ -174,7 +174,7 @@ def intF(f, grid):
   # subintervals are associated with a single basis
   # function. All others are associated with two
   # basis functions.
-  for ii in range(0, nElts):
+  for ii in range(0, n):
     l = grid[ii + 1] - grid [ii]
     x2 = (grid[ii] + grid[ii+1])/2.
     x1 = x2 - alpha*l/2.
