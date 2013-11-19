@@ -7,7 +7,7 @@ problems written in python.
 ## Installation:
 
 femToybox is built using the Numpy linear algebra package,
-and the SciPy scientificit computing package.
+and the SciPy scientific computing package.
 Many of the examples make use of the Matplotlib
 plotting library as well.
 First download the package source, either via git:
